@@ -19,7 +19,7 @@
 	</frag>
 </slide>
 <slide>
-	Si queremos comunicarnos excelentemente con nuestros compañeros, amigos, supervisados y público en general, lo primero que debemos hacer es comunicarnos con nosotros mismos, saber qué queremos de nosotros y de los demás, estructurar los mensajes claros y precisos, sin alejarnos de las ideas principales, no ver a los otros según nuestro estado de ánimo y contemplar a las personas desde la llamada autopista de la luz para ver realmente lo que son, y no lo que queremos ver y no desplazar hacia nuestros interlocutores las frustraciones propias En esa comunicación interna con el propio yo, erradiquemos el famoso NO, y enfoquemos el interés en lo que SÌ deseamos obtener.
+	<frag>Si queremos comunicarnos excelentemente con nuestros compañeros, amigos, supervisados y público en general, lo primero que debemos hacer es comunicarnos con nosotros mismos, saber qué queremos de nosotros y de los demás, estructurar los mensajes claros y precisos, sin alejarnos de las ideas principales,</frag> <frag>no ver a los otros según nuestro estado de ánimo y contemplar a las personas desde la llamada autopista de la luz para ver realmente lo que son, y no lo que queremos ver y no desplazar hacia nuestros interlocutores las frustraciones propias En esa comunicación interna con el propio yo, erradiquemos el famoso NO, y enfoquemos el interés en lo que SÌ deseamos obtener.</frag>
 </slide>
 <slide>
  	<frag>
@@ -46,6 +46,7 @@
 <slide>
 <frag>En síntesis, cuando somos lo que comunicamos, y lo hacemos con autenticidad tomando en cuenta la razón y la emoción, entonces obtendremos crédito y solvencia personal.</frag>
 
-<frag>Cambiando nuestras concepciones internas, cambiará nuestro estado emocional y en consecuencia seremos mejores comunicadores.</slide>
+<frag>Cambiando nuestras concepciones internas, cambiará nuestro estado emocional y en consecuencia seremos mejores comunicadores.
  </frag>
+</slide>
 
