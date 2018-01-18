@@ -37,7 +37,7 @@ class getDoc(APIView):
 		documentId = request.query_params['id']
 		slideObject = []
 
-		contents = Path(os.path.join(self.__location__, "doc" + documentId + ".txt")).read_text()
+		contents = Path('/home/modulos_api/content/presentations/doc' + documentId + ".txt").read_text()
 
 		doctitle	= re.findall('<title>(.*?)</title>', contents.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
 		slidelist = re.findall('<slide>(.*?)</slide>', contents.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
@@ -60,8 +60,8 @@ class getPresentation(APIView):
 		presentationId = request.query_params['id']
 		slideObject = []
 
-		contents = os.listdir(os.path.join(self.__location__, "presentations/module_" + presentationId))
-		
+		contents = os.listdir('/home/modulos_api/content/presentations/module_' + presentationId))
+
 		# Ordering lambda: https://stackoverflow.com/questions/23724653/ordered-os-listdir-in-python
 		orderedContents = sorted(contents, key=lambda x: (int(re.sub('\D','',x)),x))		
 						
