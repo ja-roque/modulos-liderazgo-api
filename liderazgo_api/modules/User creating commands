@@ -1,0 +1,12 @@
+User creating commands
+
+
+from modules.models import Modules
+>>> newModulesTable = Modules.objects.create()
+
+ from userprofile.models import Userprofile
+>>> newUserprofile = Userprofile.objects.create(userId=2, modulesID=newModulesTable, companyID=newCompany)
+
+ for x in range(1, 13):
+...  newExam = Exam.objects.create()
+...  newSession = Session.objects.create(modulesID=newModulesTable, examID=newExam, sessionNumber=x)
