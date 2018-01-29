@@ -97,10 +97,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'liderazgo_db',
+        # 'USER': 'developer',
+        # 'PASSWORD': 'modliderazgo18',
         'USER': 'developer',
-        'PASSWORD': 'modliderazgo18',
-        'HOST': 'localhost',
-        'PORT': '',
+        'PASSWORD': 'developer18',        
+        'HOST': '45.55.251.183',
+        'PORT': '5432',
     }
 }
 
