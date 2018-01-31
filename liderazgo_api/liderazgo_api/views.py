@@ -36,6 +36,10 @@ class docObject(object):
         self.title = title
         self.slides = slides
 
+class examObject(object):
+    def __init__(self, questions):
+        self.questions = questions        
+
 class RestrictedView(APIView):
 	permission_classes = (IsAuthenticated, )
 	authentication_classes = (JSONWebTokenAuthentication, )
@@ -85,6 +89,34 @@ class getPresentation(APIView):
 		orderedContents = sorted(contents, key=lambda x: (int(re.sub('\D','',x)),x))		
 						
 		return JsonResponse(orderedContents, safe=False)
+
+class getExam(APIView):
+	# This endpoint gets a number from uri to identify which exam to return in form of array.
+	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+	def get(self, request):
+		examId 			= request.query_params['id']
+		examArray		= []
+
+		contents = Path('/home/modulos_api/content/exams/exam' + examId + ".txt").read_text()
+		questions	= re.findall('<question>(.*?)</question>', contents.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
+		
+		for question in questions:
+			questionObject 	= []
+
+			theQuestion 	= re.findall('<q>(.*?)</q>', question.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
+			choices 		= re.findall('<a>(.*?)</a>', question.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
+			correctAnswer 	= re.findall('<correct-index>(.*?)</correct-index>', question.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
+
+			questionObject.append(theQuestion[0])
+			questionObject.append(choices)
+			questionObject.append(correctAnswer[0])
+
+			examArray.append(questionObject)
+			pass
+
+		toReturn = examObject(examArray)						
+		return JsonResponse(toReturn.__dict__, safe=False)
 
 class getUserModules(APIView):
 	permission_classes = (IsAuthenticated, )
