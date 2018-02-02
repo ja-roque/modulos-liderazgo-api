@@ -11,6 +11,7 @@ from django.forms.models import model_to_dict
 # =========================================
 from modules.models 		import Modules
 from company.models 		import Company
+from videos.models 			import Video
 from exam.models 			import Exam
 from session.models 		import Session
 from userprofile.models 	import Userprofile
@@ -117,6 +118,18 @@ class getExam(APIView):
 
 		toReturn = examObject(examArray)						
 		return JsonResponse(toReturn.__dict__, safe=False)
+
+class getVideo(APIView):
+	# This endpoint gets a number from uri to identify which exam to return in form of array.
+	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+	def get(self, request):
+		videoId 			= request.query_params['id']
+		videoString = ''
+
+		videoString = Video.objects.get(id=videoId)
+					
+		return JsonResponse(model_to_dict(videoString), safe=False)
 
 class getUserModules(APIView):
 	permission_classes = (IsAuthenticated, )

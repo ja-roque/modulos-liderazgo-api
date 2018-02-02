@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     'company',
     'session',
     'modules',
-    'exam'
+    'exam',
+    'videos'
 ]
 
 MIDDLEWARE = [

@@ -18,7 +18,7 @@ from django.conf.urls import include, url
 from django.urls import path
 
 from rest_framework_jwt.views import refresh_jwt_token, verify_jwt_token
-from .views import RestrictedView, getDoc, getPresentation, getUserModules, getExam
+from .views import RestrictedView, getDoc, getPresentation, getUserModules, getExam, getVideo
 
 
 urlpatterns = [
@@ -37,5 +37,6 @@ urlpatterns = [
     url(r'^getdoc/$', getDoc.as_view()),
     url(r'^getpresentation/$', getPresentation.as_view()),
     url(r'^getexam/$', getExam.as_view()),
+    url(r'^getvideo/$', getVideo.as_view()),
     url(r'^getusermodules/$', getUserModules.as_view()),
 ]
