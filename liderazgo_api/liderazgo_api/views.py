@@ -34,7 +34,7 @@ from pathlib import Path
 
 class docObject(object):
     def __init__(self, title, slides):
-        self.title = title
+        self.title 	= title
         self.slides = slides
 
 class examObject(object):
@@ -42,8 +42,8 @@ class examObject(object):
         self.questions = questions        
 
 class RestrictedView(APIView):
-	permission_classes = (IsAuthenticated, )
-	authentication_classes = (JSONWebTokenAuthentication, )
+	permission_classes 		= (IsAuthenticated, )
+	authentication_classes 	= (JSONWebTokenAuthentication, )
 
 	def get(self, request):
 		data = {
@@ -58,13 +58,13 @@ class getDoc(APIView):
 	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 	def get(self, request):
-		documentId = request.query_params['id']
+		documentId 	= request.query_params['id']
 		slideObject = []
 
-		contents = Path('/home/modulos_api/content/docs/doc' + documentId + ".txt").read_text()
+		contents 	= Path('/home/modulos_api/content/docs/doc' + documentId + ".txt").read_text()
 
 		doctitle	= re.findall('<title>(.*?)</title>', contents.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
-		slidelist = re.findall('<slide>(.*?)</slide>', contents.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
+		slidelist 	= re.findall('<slide>(.*?)</slide>', contents.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
 		
 		for slide in slidelist:
 			
@@ -81,8 +81,8 @@ class getPresentation(APIView):
 	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 	def get(self, request):
-		presentationId = request.query_params['id']
-		slideObject = []
+		presentationId 	= request.query_params['id']
+		slideObject 	= []
 
 		contents = os.listdir('/home/modulos_api/content/presentations/module_' + presentationId)
 
@@ -96,10 +96,10 @@ class getExam(APIView):
 	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 	def get(self, request):
-		examId 			= request.query_params['id']
-		examArray		= []
+		examId 		= request.query_params['id']
+		examArray	= []
 
-		contents = Path('/home/modulos_api/content/exams/exam' + examId + ".txt").read_text()
+		contents 	= Path('/home/modulos_api/content/exams/exam' + examId + ".txt").read_text()
 		questions	= re.findall('<question>(.*?)</question>', contents.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
 		
 		for question in questions:
@@ -124,28 +124,65 @@ class getVideo(APIView):
 	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 	def get(self, request):
-		videoId 			= request.query_params['id']
+		videoId 	= request.query_params['id']
 		videoString = ''
-
 		videoString = Video.objects.get(id=videoId)
 					
 		return JsonResponse(model_to_dict(videoString), safe=False)
 
 class getUserModules(APIView):
-	permission_classes = (IsAuthenticated, )
-	authentication_classes = (JSONWebTokenAuthentication, )
+	permission_classes 		= (IsAuthenticated, )
+	authentication_classes 	= (JSONWebTokenAuthentication, )
 
 	def get(self, request):
 		data = {
-		'id': request.user.id,
-		'username': request.user.username,
-		'token': str(request.auth)
+		'id': request.user.id
 		}
 
-		requestingUser = User.objects.get(id=data['id'])
-
-		userProfile = Userprofile.objects.get(userID=requestingUser)
-		userModules = Modules.objects.get(id=userProfile.modulesID_id)
+		requestingUser 	= User.objects.get(id=data['id'])
+		userProfile 	= Userprofile.objects.get(userID=requestingUser)
+		userModules 	= Modules.objects.get(id=userProfile.modulesID_id)
 
 		return Response(model_to_dict(userModules))
+
+class postExamScore(APIView):
+	permission_classes 		= (IsAuthenticated, )
+	authentication_classes 	= (JSONWebTokenAuthentication, )
+
+	def post(self, request):
+		data = {
+			'id': request.user.id,
+			'examData' : request.data
+		}
+
+		try:
+			requestingUser 		= User.objects.get(id=data['id'])
+			userProfile 		= Userprofile.objects.get(userID=requestingUser)
+			userModules 		= Modules.objects.get(id=userProfile.modulesID_id)
+			sessionToSetScore 	= Session.objects.get(modulesID=userModules, sessionNumber=data['examData']['sessionNumber'])
+			examToSetScore 		= Exam.objects.get(id=sessionToSetScore.examID_id);					
+
+			# This condition sets whether the user is allowed to go to next module or not.
+			# It checks if its score was greater than the default passing score (70 (%))
+			if data['examData']['Score'] > 70:
+				# Determine if user has already coursed that exam or not, if yes, then dont update the session reached value.
+				if userModules.sessionReached == data['examData']['sessionNumber']:
+					userModules.sessionReached = data['examData']['sessionNumber'] + 1
+					pass				
+				pass
+
+			examToSetScore.examScore 	= data['examData']['Score']
+			examToSetScore.attempts 	= examToSetScore.attempts+1
+			examToSetScore.save()
+
+			return Response('Exam score saved successfully')
+			pass
+		except Exception as e:
+			raise e
+			return Response('An error occured')
+
+			
+
+
+		
 
