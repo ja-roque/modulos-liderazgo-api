@@ -18,8 +18,7 @@ from django.conf.urls import include, url
 from django.urls import path
 
 from rest_framework_jwt.views import refresh_jwt_token, verify_jwt_token
-from .views import RestrictedView, getDoc, getPresentation, getUserModules, getExam, getVideo, postExamScore
-
+from .views import RestrictedView, getDoc, getPresentation, getUserModules, getExam, getVideo, postExamScore, getUserReport, getAllReports, getAllUsers
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -41,6 +40,10 @@ urlpatterns = [
     url(r'^getexam/$', getExam.as_view()),
     url(r'^getvideo/$', getVideo.as_view()),
     url(r'^getusermodules/$', getUserModules.as_view()),
+    url(r'^getuserreport/$', getUserReport.as_view()),
+
+    url(r'^getallusers/$', getAllUsers.as_view()),
+    url(r'^getallreports/$', getAllReports.as_view()),
 
     # POSTS
     url(r'^postexamscore/$', postExamScore.as_view()),    

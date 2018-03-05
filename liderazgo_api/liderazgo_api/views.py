@@ -25,12 +25,18 @@ from django.contrib.auth.models import User
 # =========================================
 import os
 import re
+from django.db.models import Avg, Max, Min
+from datetime import date
 from pathlib import Path
 # =========================================
 # =========================================
 
 
-
+class examReport(object):
+    def __init__(self, sList, EDList, aList):
+        self.scoresList 	= sList
+        self.elapsedDaysList= EDList
+        self.attemptsList 	= aList
 
 class docObject(object):
     def __init__(self, title, slides):
@@ -47,9 +53,9 @@ class RestrictedView(APIView):
 
 	def get(self, request):
 		data = {
-		'id': request.user.id,
+		'id': 		request.user.id,
 		'username': request.user.username,
-		'token': str(request.auth)
+		'token': 	str(request.auth)
 		}
 		return Response(data)
 
@@ -98,13 +104,11 @@ class getExam(APIView):
 	def get(self, request):
 		examId 		= request.query_params['id']
 		examArray	= []
-
 		contents 	= Path('/home/modulos_api/content/exams/exam' + examId + ".txt").read_text()
 		questions	= re.findall('<question>(.*?)</question>', contents.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
 		
 		for question in questions:
 			questionObject 	= []
-
 			theQuestion 	= re.findall('<q>(.*?)</q>', question.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
 			choices 		= re.findall('<a>(.*?)</a>', question.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
 			correctAnswer 	= re.findall('<correct-index>(.*?)</correct-index>', question.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
@@ -136,14 +140,125 @@ class getUserModules(APIView):
 
 	def get(self, request):
 		data = {
+		'id': request.user.id,
+		'sessionNumber': request.query_params['sessionnumber']
+		}
+
+		requestingUser 	= User.objects.get(id=data['id'])
+		userProfile 	= Userprofile.objects.get(userID=requestingUser)
+		userModules 	= Modules.objects.get(id=userProfile.modulesID_id)
+		sessions		= Session.objects.filter(modulesID=userModules).order_by('sessionNumber')
+
+		currentSession	= Session.objects.get(modulesID=userModules, sessionNumber=int(data['sessionNumber']))
+		# If there's no start date in the actual session create one.
+		if (currentSession.startDate == None):
+			currentSession.startDate = date.today()
+			currentSession.save()
+			print(model_to_dict(currentSession))
+			print(date.today())
+			pass
+
+		return Response(model_to_dict(userModules))
+
+class getUserReport(APIView):
+	permission_classes 		= (IsAuthenticated, )
+	authentication_classes 	= (JSONWebTokenAuthentication, )	
+
+	def get(self, request):
+		data = {
 		'id': request.user.id
 		}
 
 		requestingUser 	= User.objects.get(id=data['id'])
 		userProfile 	= Userprofile.objects.get(userID=requestingUser)
 		userModules 	= Modules.objects.get(id=userProfile.modulesID_id)
+		sessions		= Session.objects.filter(modulesID=userModules).order_by('sessionNumber')
 
-		return Response(model_to_dict(userModules))
+		examList 		= [Session.examID_id for Session in sessions]				
+		
+		exams 			= Exam.objects.filter(id__in=examList).order_by('id')
+		
+		examScoreList	= [Exam.examScore for Exam in exams]
+		examAttemptsList= [Exam.attempts for Exam in exams]
+		sessionElapsedDaysList	= [(Session.endDate - Session.startDate).days if Session.endDate != None else 0 for Session in sessions]
+
+		profileDict		= model_to_dict(userProfile)
+		userReport 		= examReport(examScoreList, sessionElapsedDaysList, examAttemptsList)
+
+
+
+		return JsonResponse({ 'perfil': profileDict, 'reporte': userReport.__dict__}, safe=False)
+
+class getAllReports(APIView):
+	permission_classes 		= (IsAuthenticated, )
+	authentication_classes 	= (JSONWebTokenAuthentication, )	
+
+	def get(self, request):
+		data = {
+		'id': request.user.id
+		}
+
+		# requestingUser 	= User.objects.get(id=data['id'])
+		requestingUser 	= User.objects.get(id=2)
+		userProfile 	= Userprofile.objects.get(userID=requestingUser)
+		companyUsers	= Userprofile.objects.filter(companyID=userProfile.companyID).order_by('firstname')
+		# realUsers 		= User.objects.filter(id__in=[userID['userID'] for userID in list(companyUsers.values('userID'))])
+		realUsers 		= User.objects.filter(id__in=companyUsers.values_list('userID', flat=True))
+		sessions 		= Session.objects.filter(user__in=realUsers).order_by('sessionNumber')
+
+		sessionElapsedDaysAllList	= []
+
+		examScoreAvgList			= []
+		examAttemptsAvgList 		= []
+		sessionElapsedDaysAvgList 	= []
+
+		examScoreMaxList 			= []
+		examAttemptsMaxList 		= []
+		sessionElapsedDaysMaxList 	= []
+
+		examScoreMinList 			= []
+		examAttemptsMinList 		= []
+		sessionElapsedDaysMinList 	= []
+
+		startDates  = []
+		endDates	= []	
+
+		for x in range(1,13):
+			examScoreAvgList.append(Exam.objects.filter(id__in=sessions.filter(sessionNumber=x).values_list('examID_id', flat=True)).aggregate(Avg('examScore')))
+			examAttemptsAvgList.append(Exam.objects.filter(id__in=sessions.filter(sessionNumber=x).values_list('examID_id', flat=True)).aggregate(Avg('attempts')))
+			examScoreMaxList.append(Exam.objects.filter(id__in=sessions.filter(sessionNumber=x).values_list('examID_id', flat=True)).aggregate(Max('examScore')))
+			examAttemptsMaxList.append(Exam.objects.filter(id__in=sessions.filter(sessionNumber=x).values_list('examID_id', flat=True)).aggregate(Max('attempts')))
+			examScoreMinList.append(Exam.objects.filter(id__in=sessions.filter(sessionNumber=x).values_list('examID_id', flat=True)).aggregate(Min('examScore')))
+			examAttemptsMinList.append(Exam.objects.filter(id__in=sessions.filter(sessionNumber=x).values_list('examID_id', flat=True)).aggregate(Min('attempts')))
+			startDates.append(sessions.filter(sessionNumber=x).values_list('startDate', flat=True))
+			endDates.append(sessions.filter(sessionNumber=x).values_list('endDate', flat=True))
+
+		for x in range(0,12):
+			sessionElapsedDaysAllList.append([(endDates[x][y] - startDates[x][y]).days if endDates[x][y] != None else 0 for y in range(0, len(startDates[0]))])
+			sessionElapsedDaysAvgList.append(mean(sessionElapsedDaysAllList[x]))
+			sessionElapsedDaysMaxList.append(max(sessionElapsedDaysAllList[x]))
+			sessionElapsedDaysMinList.append(min(sessionElapsedDaysAllList[x]))				
+
+		response 		= 	{'avgs':	{'scores': [theList['examScore__avg']for theList in examScoreAvgList], 'attempts': [theList['attempts__avg']for theList in examAttemptsAvgList], 'days': sessionElapsedDaysAvgList},
+							'maxes':	{'scores': [theList['examScore__max']for theList in examScoreMaxList], 'attempts': [theList['attempts__max']for theList in examAttemptsMaxList], 'days': sessionElapsedDaysMaxList},
+							'mins': 	{'scores': [theList['examScore__min']for theList in examScoreMinList], 'attempts': [theList['attempts__min']for theList in examAttemptsMinList], 'days': sessionElapsedDaysMinList}}
+		return JsonResponse(response, safe=False)
+
+
+class getAllUsers(APIView):
+	permission_classes 		= (IsAuthenticated, )
+	authentication_classes 	= (JSONWebTokenAuthentication, )	
+
+	def get(self, request):
+		data = {
+		'id': request.user.id
+		}
+
+		requestingUser 	= User.objects.get(id=data['id'])
+		userProfile 	= Userprofile.objects.get(userID=requestingUser)
+		companyUsers	= Userprofile.objects.filter(companyID=userProfile.companyID).order_by('firstname')
+		userList		= [model_to_dict(userProfile) for userProfile in companyUsers]		
+		return JsonResponse(userList, safe=False)
 
 class postExamScore(APIView):
 	permission_classes 		= (IsAuthenticated, )
@@ -167,7 +282,11 @@ class postExamScore(APIView):
 			if data['examData']['Score'] > 70:
 				# Determine if user has already coursed that exam or not, if yes, then dont update the session reached value.
 				if userModules.sessionReached == data['examData']['sessionNumber']:
-					userModules.sessionReached = data['examData']['sessionNumber'] + 1
+					sessionToSetScore.endDate	= date.today()
+					userModules.sessionReached 	= data['examData']['sessionNumber'] + 1
+
+					sessionToSetScore.save()
+					userModules.save()
 					pass				
 				pass
 
@@ -180,6 +299,9 @@ class postExamScore(APIView):
 		except Exception as e:
 			raise e
 			return Response('An error occured')
+
+def mean(numbers):
+    return float(sum(numbers)) / max(len(numbers), 1)
 
 			
 
