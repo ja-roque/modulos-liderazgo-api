@@ -123,6 +123,49 @@ class getExam(APIView):
 		toReturn = examObject(examArray)						
 		return JsonResponse(toReturn.__dict__, safe=False)
 
+class getTest(APIView):
+	# This endpoint gets a number from uri to identify which exam to return in form of array.
+	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+	def get(self, request):
+		testId 		= request.query_params['id']
+		testArray	= []
+		contents 	= Path('/home/modulos_api/content/tests/tests.txt').read_text()
+		print(contents)
+		testLink	= re.findall('<test_'+testId+'>(.*?)</test_'+testId+'>', contents.replace('\n', '').replace('\t', ''), flags= re.DOTALL)
+
+		toReturn = testLink						
+		return JsonResponse(toReturn, safe=False)
+
+class getBibliografia(APIView):
+	# This endpoint gets a number from uri to identify which document to return in form of array.
+	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+	def get(self, request):
+		bibliografiaId 	= request.query_params['id']	
+
+		contents = os.listdir('/home/modulos_api/content/bibliografias/module_' + bibliografiaId)
+
+		# Ordering lambda: https://stackoverflow.com/questions/23724653/ordered-os-listdir-in-python
+		orderedContents = sorted(contents, key=lambda x: (int(re.sub('\D','',x)),x))		
+						
+		return JsonResponse(orderedContents, safe=False)
+
+class getDinamica(APIView):
+	# This endpoint gets a number from uri to identify which document to return in form of array.
+	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+	def get(self, request):
+		dinamicaId 	= request.query_params['id']
+		slideObject 	= []
+
+		contents = os.listdir('/home/modulos_api/content/dinamicas/module_' + dinamicaId)
+
+		# Ordering lambda: https://stackoverflow.com/questions/23724653/ordered-os-listdir-in-python
+		orderedContents = sorted(contents, key=lambda x: (int(re.sub('\D','',x)),x))		
+						
+		return JsonResponse(orderedContents, safe=False)
+
 class getVideo(APIView):
 	# This endpoint gets a number from uri to identify which exam to return in form of array.
 	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
