@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'session',
     'modules',
     'exam',
-    'videos'
+    'videos',
+    'liderazgo_api'
 ]
 
 MIDDLEWARE = [
