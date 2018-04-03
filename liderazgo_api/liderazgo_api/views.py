@@ -209,11 +209,12 @@ class getUserReport(APIView):
 
 	def get(self, request):
 		data = {
-		'id': request.user.id
+		'id': request.user.id,
+		'requested_user_profile': request.query_params.get('user_profile_id')
 		}
 
-		requestingUser 	= User.objects.get(id=data['id'])
-		userProfile 	= Userprofile.objects.get(userID=requestingUser)
+		requestingUser 	= User.objects.get(id = data['id'])
+		userProfile 	= Userprofile.objects.get(userID= (data['requested_user_profile'] if data['requested_user_profile'] != None else requestingUser))
 		userModules 	= Modules.objects.get(id=userProfile.modulesID_id)
 		sessions		= Session.objects.filter(modulesID=userModules).order_by('sessionNumber')
 
