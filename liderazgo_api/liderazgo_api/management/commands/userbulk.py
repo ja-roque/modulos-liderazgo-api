@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 import csv
 
 class Command(BaseCommand):
-	help = 'Closes the specified poll for voting'
+	help = 'Creates users in bulk by reading a csv'
 	
 
 	def add_arguments(self, parser):

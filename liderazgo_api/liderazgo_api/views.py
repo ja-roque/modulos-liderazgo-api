@@ -25,6 +25,7 @@ from django.contrib.auth.models import User
 # =========================================
 import os
 import re
+import csv
 from django.db.models import Avg, Max, Min
 from datetime import date
 from pathlib import Path
@@ -85,16 +86,38 @@ class getDoc(APIView):
 class getPresentation(APIView):
 	# This endpoint gets a number from uri to identify which document to return in form of array.
 	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+	
 
 	def get(self, request):
+
+		try:
+			with open('./liderazgo_api/presentations/video_links.csv', 'r') as f:
+				reader = csv.reader(f)
+				video_links_list = list(reader)
+			pass
+		except Exception as e:
+			raise e	
+
 		presentationId 	= request.query_params['id']
 		slideObject 	= []
 
 		contents = os.listdir('/home/modulos_api/content/presentations/module_' + presentationId)
 
 		# Ordering lambda: https://stackoverflow.com/questions/23724653/ordered-os-listdir-in-python
-		orderedContents = sorted(contents, key=lambda x: (int(re.sub('\D','',x)),x))		
-						
+		orderedContents = sorted(contents, key=lambda x: (int(re.sub('\D','',x)),x))
+		for index, slide in enumerate(orderedContents):
+			orderedContents[index] = {'slide': slide, 'link': ''}
+			pass	
+		
+		for video_link in video_links_list:
+			pass
+		
+		if any(video_link[0] == presentationId for video_link in video_links_list):
+			
+			for i, video_link in enumerate(video_links_list):
+				if video_link[0] == presentationId:
+					orderedContents[ int(video_link[1])-1 ] = {'slide':orderedContents[ int(video_link[1])-1 ]['slide'], 'link':video_link[2]}										
+
 		return JsonResponse(orderedContents, safe=False)
 
 class getExam(APIView):
