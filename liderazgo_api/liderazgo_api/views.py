@@ -241,18 +241,16 @@ class getUserReport(APIView):
 		userModules 	= Modules.objects.get(id=userProfile.modulesID_id)
 		sessions		= Session.objects.filter(modulesID=userModules).order_by('sessionNumber')
 
-		examList 		= [Session.examID_id for Session in sessions]				
-		
+		examList 		= [Session.examID_id for Session in sessions]						
 		exams 			= Exam.objects.filter(id__in=examList).order_by('id')
 		
 		examScoreList	= [Exam.examScore for Exam in exams]
 		examAttemptsList= [Exam.attempts for Exam in exams]
-		sessionElapsedDaysList	= [(Session.endDate - Session.startDate).days if Session.endDate != None else 0 for Session in sessions]
+		# Lets make sure that we just calculate date diff for real INT values, if a None is present, the whole users reports screen will crash.
+		sessionElapsedDaysList	= [(Session.endDate - Session.startDate).days if Session.endDate != None and Session.startDate != None else 0 for Session in sessions]
 
 		profileDict		= model_to_dict(userProfile)
 		userReport 		= examReport(examScoreList, sessionElapsedDaysList, examAttemptsList)
-
-
 
 		return JsonResponse({ 'perfil': profileDict, 'reporte': userReport.__dict__}, safe=False)
 
@@ -290,6 +288,8 @@ class getAllReports(APIView):
 		startDates  = []
 		endDates	= []	
 
+		# Things get a bit ugly here, this should be improved, basically here we calculate all the avarages and sums and mins of the whole set of users for the admin 
+		# screen not yet released for public.
 		for x in range(1,13):
 			examScoreAvgList.append(Exam.objects.filter(id__in=sessions.filter(sessionNumber=x).values_list('examID_id', flat=True)).aggregate(Avg('examScore')))
 			examAttemptsAvgList.append(Exam.objects.filter(id__in=sessions.filter(sessionNumber=x).values_list('examID_id', flat=True)).aggregate(Avg('attempts')))
@@ -348,7 +348,7 @@ class postExamScore(APIView):
 			# It checks if its score was greater than the default passing score (70 (%))
 			if data['examData']['Score'] > 70:
 				# Determine if user has already coursed that exam or not, if yes, then dont update the session reached value.
-				if userModules.sessionReached == data['examData']['sessionNumber']:
+				if userModules.sessionReached 	== data['examData']['sessionNumber']:
 					sessionToSetScore.endDate	= date.today()
 					userModules.sessionReached 	= data['examData']['sessionNumber'] + 1
 

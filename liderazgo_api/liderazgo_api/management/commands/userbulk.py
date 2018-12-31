@@ -45,6 +45,7 @@ class Command(BaseCommand):
 				                )
 				print(newUser)
 				newUser.set_password(Password)
+				newUser.save()
 
 				for x in range(1,13):
 					theExam = Exam.objects.create( user=newUser, examScore=0, attempts=0)
